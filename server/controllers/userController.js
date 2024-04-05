@@ -50,7 +50,7 @@ const login = asyncHandler(async(req, res) => {
 
 const getUser = asyncHandler(async(req, res) => { 
     const { _id } = req.user;
-    console.log(req.user)
+    
     const response = await UserService.getUser(_id);
     return res.status(200).json({
         success: response ? true : false,
