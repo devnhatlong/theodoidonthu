@@ -38,12 +38,13 @@ const login = asyncHandler(async(req, res) => {
 
     // refreshToken => dùng để cấp mới accesstoken
     // accesstoken => dùng để xác thực người dùng, quyền người dùng, phân quyền người dùng
-    // Save refreshToken into cookie
-    res.cookie("refreshToken", newRefreshToken, { httpOnly: true, maxAge: 7*24*60*60*1000 });
+    // // Save refreshToken into cookie
+    // res.cookie("refreshToken", newRefreshToken, { httpOnly: true, maxAge: 7*24*60*60*1000, secure: false, sameSite: 'strict' });
 
     return res.status(200).json({
         success: response ? true : false,
         accessToken,
+        newRefreshToken,
         message: userData
     });
 });
@@ -60,17 +61,17 @@ const getUser = asyncHandler(async(req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     // get token from cookies
-    const cookie = req.cookies;
+    const refreshTokenFromBody = req.body.refreshToken;
 
     // check cookie exist
-    if (!cookie && !cookie.refreshToken) {
-        throw new Error("No refresh token in cookies");
+    if (!req.body && !req.body.refreshToken) {
+        throw new Error("No refresh token in body");
     }
 
     // verify token
-    const result = await jwt.verify(cookie.refreshToken, process.env.JWT_SECRET);
+    const result = await jwt.verify(refreshTokenFromBody, process.env.JWT_SECRET);
 
-    const response = await User.findOne({ _id: result._id, refreshToken: cookie.refreshToken });
+    const response = await User.findOne({ _id: result._id, refreshToken: refreshTokenFromBody });
         
     return res.status(200).json({
         success: response ? true : false,
@@ -79,21 +80,17 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async(req, res) => { 
-    // get token from cookies
-    const cookie = req.cookies;
-    
-    if (!cookie || !cookie.refreshToken) {
-        throw new Error("No refresh token in cookies");
-    }
+    // get token from body
+    const refreshTokenFromBody = req.body.refreshToken;
 
     // Update refresh token in db
-    await User.findOneAndUpdate({refreshToken: cookie.refreshToken}, {refreshToken: ""}, {new: true});
+    await User.findOneAndUpdate({refreshToken: refreshTokenFromBody}, {refreshToken: ""}, {new: true});
 
     // Delete refresh token ib cookie browser
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true
-    });
+    // res.clearCookie("refreshToken", {
+    //     httpOnly: true,
+    //     secure: true
+    // });
 
     return res.status(200).json({
         success: true,

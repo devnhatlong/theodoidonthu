@@ -13,13 +13,9 @@ var userSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
-    email: {
-        type:String,
-        unique: true
-    },
     departmentName: {
         type:String,
-        unique: true
+        // unique: true
     },
     role: {
         type:String,

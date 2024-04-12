@@ -1,31 +1,48 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
-import { Login } from './pages/Login/Login';
-// import { PrivateRoute } from './components/PrivateRoute';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import "./styles/sb-admin-2.min.css";
-import { routes } from './routes/index';
+import userService from './services/userService';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from './redux/userSlice';
+import Loading from "./components/LoadingComponent/Loading";
+import { handleDecoded } from './utils/utils';
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  return (
-    <div className="App" id="wrapper">
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
+  console.log("App-user: ", user)
+  const [isLoading, setIsLoading] = useState(false);
 
-          {routes.map((route) => {
-            const PageName = route.page;
-            
-            return (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={ <PageName /> }
-              />
-            );
-          })}
-        </Routes>
-      </Router>
-    </div>
+  const handleGetDetailsUser = async (accessToken) => {
+    const response = await userService.getUser(accessToken);
+    console.log("response handleGetDetailsUser: ", response)
+    dispatch(setUser(response.result));
+    setIsLoading(false);
+    console.log("isLoading: ", isLoading)
+  };
+
+  useEffect(() => {
+    setIsLoading(true);
+    const { accessToken, decoded } = handleDecoded();
+
+    if (decoded?._id) {
+      handleGetDetailsUser(accessToken);
+    }
+    setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleGetDetailsUser, handleDecoded])
+
+  return (
+    <Loading isLoading = {isLoading}>
+      <div className="App" id="wrapper">
+        {!isLoading && ( // Render AppRoutes chỉ khi dữ liệu user đã được load
+            <Router>
+              <AppRoutes />
+            </Router>
+        )}
+      </div>
+    </Loading>
   );
 }
 

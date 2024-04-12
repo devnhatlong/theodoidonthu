@@ -1,7 +1,41 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux'; // Thêm useDispatch
+import { useNavigate } from "react-router-dom";
 import backgroundImage from "../../assets/images/bg_login.jpg";
+import userService from '../../services/userService';
+import { setUser } from '../../redux/userSlice'; // Import action
 
 export const Login = () => {
+    const dispatch = useDispatch(); // Sử dụng useDispatch
+    const navigate = useNavigate(); 
+
+    const [values, setValues] = useState({
+        userName: '',
+        password: ''
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await userService.login(values);
+            
+            if (response.success) {
+                // Lưu thông tin người dùng vào Redux store
+                dispatch(setUser(response.message.userData));
+                // Lưu accessToken vào cookie
+                document.cookie = `accessToken=${response.accessToken}; path=/`;
+                document.cookie = `refreshToken=${response.newRefreshToken}; path=/`;
+                // localStorage.setItem("")
+                // Chuyển hướng đến /dashboard
+                navigate('/');
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     return (
         <div className="outer-container" style={{backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '100vh', width: "100%"}}>
             <div className="container">
@@ -17,14 +51,22 @@ export const Login = () => {
                                             <div className="text-center">
                                                 <h1 className="h4 text-gray-900 mb-4">Đăng nhập tài khoản</h1>
                                             </div>
-                                            <form className="user">
+                                            <form className="user" onSubmit={handleSubmit}>
                                                 <div className="form-group">
-                                                    <input type="email" className="form-control form-control-user" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Nhập tên đăng nhập" />
+                                                    <input type="text" className="form-control form-control-user" placeholder="Nhập tên đăng nhập" autoComplete="current-username"
+                                                    onChange={(e) => setValues({...values, userName: e.target.value})}/>
                                                 </div>
                                                 <div className="form-group">
-                                                    <input type="password" className="form-control form-control-user" id="exampleInputPassword" placeholder="Nhập mật khẩu" />
+                                                    <input type="password" className="form-control form-control-user" placeholder="Nhập mật khẩu" autoComplete="current-password"
+                                                    onChange={(e) => setValues({...values, password: e.target.value})}/>
                                                 </div>
-                                                <a href="index.html" className="btn btn-primary btn-user btn-block">Đăng nhập</a>
+                                                {/* {
+                                                    error && (
+                                                        <div className='alert alert-danger' role='alert'>{error}</div>
+                                                    )
+                                                } */}
+                                                {/* <a className="btn btn-primary btn-user btn-block">Đăng nhập</a> */}
+                                                <button type='submit' className='btn btn-primary btn-user btn-block'>Đăng nhập</button>
                                             </form>
                                         </div>
                                     </div>

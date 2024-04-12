@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { getTokenFromCookie } from '../utils/utils';
+import userService from './userService';
 
-export const axiosJWT = axios.create();
+export const axiosJWTLetter = axios.create();
 
 // Add a request interceptor to add the JWT token to the authorization header
-axiosJWT.interceptors.request.use(
+axiosJWTLetter.interceptors.request.use(
     (config) => {
-        console.log("interceptors.request")
         const accessToken = getTokenFromCookie("accessToken");
 
         if (accessToken) {
@@ -19,10 +19,9 @@ axiosJWT.interceptors.request.use(
 );
 
 // Add a response interceptor to refresh the JWT token if it's expired
-axiosJWT.interceptors.response.use(
+axiosJWTLetter.interceptors.response.use(
     async (response) => response,
     async (error) => {
-        console.log("interceptors.response")
         const originalRequest = error.config;
         const refreshToken = getTokenFromCookie("refreshToken");
 
@@ -32,7 +31,7 @@ axiosJWT.interceptors.response.use(
                 document.cookie = `accessToken=${newAccessToken}; path=/`;
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
-                return axiosJWT(originalRequest);
+                return axiosJWTLetter(originalRequest);
             } catch (refreshError) {
                 // Handle refresh token error
                 console.error(refreshError);
@@ -61,10 +60,10 @@ const redirectToLogin = () => {
     window.location.href = "/login";
 };
 
-const userService = {
-    login: async (values) => {
+const letterService = {
+    createLetter: async (data) => {
         try {
-            const response = await axios.post(`${process.env.REACT_APP_SERVER_URL}/user/login`, values);
+            const response = await axiosJWTLetter.post(`${process.env.REACT_APP_SERVER_URL}/letter/create-letter`, data);
 
             return response.data;
         } 
@@ -72,38 +71,30 @@ const userService = {
             console.log(error);
         }
     },
-    logout: async (refreshToken) => {
+    getAllLetter: async (currentPage, pageSize) => {
         try {
-            const response = await axios.post(`${process.env.REACT_APP_SERVER_URL}/user/logout`, { refreshToken });
+            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-all-letter?currentPage=${currentPage}&pageSize=${pageSize}`);
 
             return response.data;
-        } catch (error) {
-            throw error; // Rethrow the error for handling in interceptor
+        } 
+        catch (error) {
+            console.log(error);
         }
     },
-    getUser: async (refreshToken) => {
+    searchLetters: async (searchParams, currentPage, pageSize) => {
         try {
-            const response = await axiosJWT.get(`${process.env.REACT_APP_SERVER_URL}/user/get-user`,  {
-                headers: {
-                    authorization: `Bearer ${refreshToken}`,
+            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/search`, {
+                params: {
+                    searchParams,
+                    currentPage,
+                    pageSize
                 }
             });
-
-            return response.data;
-        } 
-        catch (error) {
-            console.log(error);
-        }
-    },
-    getRefreshToken: async (refreshToken) => {
-        try {
-            const response = await axiosJWT.post(`${process.env.REACT_APP_SERVER_URL}/user/refreshtoken`, { refreshToken });
-
             return response.data;
         } catch (error) {
-            throw error; // Rethrow the error for handling in interceptor
+            console.log(error);
         }
     }
 };
 
-export default userService;
+export default letterService;
