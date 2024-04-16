@@ -11,15 +11,12 @@ import AppRoutes from "./routes/AppRoutes";
 function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
-  console.log("App-user: ", user)
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGetDetailsUser = async (accessToken) => {
     const response = await userService.getUser(accessToken);
-    console.log("response handleGetDetailsUser: ", response)
     dispatch(setUser(response.result));
     setIsLoading(false);
-    console.log("isLoading: ", isLoading)
   };
 
   useEffect(() => {

@@ -39,7 +39,7 @@ export const Dashboard = () => {
     
     return (
         <>
-            <div style={{display: "flex", position: "absolute", zIndex: "1", top: "75px"}}>
+            <div style={{display: "flex", position: "absolute", zIndex: "1", top: "75px", width: "100%"}}>
                 <Menu
                     mode="inline"
                     style={{ width: '170px', boxShadow: '1px 1px 2px #ccc', height: "90vh" }}

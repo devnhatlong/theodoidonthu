@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getTokenFromCookie } from '../utils/utils';
 import userService from './userService';
-
+const moment = require('moment-timezone');
 export const axiosJWTLetter = axios.create();
 
 // Add a request interceptor to add the JWT token to the authorization header
@@ -64,32 +64,55 @@ const letterService = {
     createLetter: async (data) => {
         try {
             const response = await axiosJWTLetter.post(`${process.env.REACT_APP_SERVER_URL}/letter/create-letter`, data);
-
             return response.data;
         } 
         catch (error) {
             console.log(error);
         }
     },
-    getAllLetter: async (currentPage, pageSize) => {
+    getAllLetter: async (currentPage, pageSize, filters = {}) => {
         try {
-            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-all-letter?currentPage=${currentPage}&pageSize=${pageSize}`);
-
-            return response.data;
-        } 
-        catch (error) {
-            console.log(error);
-        }
-    },
-    searchLetters: async (searchParams, currentPage, pageSize) => {
-        try {
-            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/search`, {
+            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-all-letter`, {
                 params: {
-                    searchParams,
+                    filters,
                     currentPage,
                     pageSize
                 }
             });
+
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    getDetailLetter: async (id) => {
+        try {
+            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-letter/${id}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    updateLetter: async (id, data) => {
+        try {
+            const response = await axiosJWTLetter.put(`${process.env.REACT_APP_SERVER_URL}/letter/update-letter/${id}`, data);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    deleteLetter: async (id) => {
+        try {
+            const response = await axiosJWTLetter.delete(`${process.env.REACT_APP_SERVER_URL}/letter/delete-letter/${id}`);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    deleteMultipleLetters: async (ids) => {
+        try {
+            const response = await axiosJWTLetter.delete(`${process.env.REACT_APP_SERVER_URL}/letter/delete-multiple-letters`, { data: { ids } });
             return response.data;
         } catch (error) {
             console.log(error);

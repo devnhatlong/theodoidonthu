@@ -36,7 +36,7 @@ var letterSchema = new mongoose.Schema({
     chuyen2:{
         type:String
     },
-    chiChu:{
+    ghiChu:{
         type:String
     },
     trichYeu:{

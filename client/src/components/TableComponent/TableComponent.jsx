@@ -1,21 +1,20 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Table } from 'antd';
 import Loading from '../LoadingComponent/Loading';
 
 const TableComponent = (props) => {
-  const { selectionType = 'checkbox', data = [], isLoading = false, columns = [], handleDeleteMultiple } = props;
+  const { selectionType = 'checkbox', data = [], isLoading = false, columns = [], handleDeleteMultiple, resetSelection } = props;
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   // rowSelection object indicates the need for row selection
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
       setSelectedRowKeys(selectedRowKeys);
     },
-    // getCheckboxProps: (record) => ({
-    //   disabled: record.product_name === 'Disabled User',
-    //   // Column configuration not to be checked
-    //   name: record.product_name,
-    // }),
   };
+
+  useEffect(() => {
+    setSelectedRowKeys([]);
+  }, [resetSelection]);
 
   const handleDeleteAll = () => {
     handleDeleteMultiple(selectedRowKeys);
@@ -24,20 +23,19 @@ const TableComponent = (props) => {
   return (
     <Loading isLoading={isLoading}>
         {selectedRowKeys.length > 0 && (
-            <div style={{ backgroundColor: '#1677ff', color: '#fff', fontWeight: 'bold', padding: '10px', cursor: 'pointer'}} onClick={handleDeleteAll}>
+          <div style={{ backgroundColor: '#1677ff', color: '#fff', fontWeight: 'bold', padding: '10px', cursor: 'pointer'}} onClick={handleDeleteAll}>
             Xóa tất cả
-            </div>
+          </div>
         )}
         <Table
-            rowSelection={{
-            type: selectionType,
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={data}
-            pagination={{ pageSize: 5}}
-            {...props}
-            bordered
+          rowSelection={{
+          type: selectionType,
+            ...rowSelection,
+          }}
+          columns={columns}
+          dataSource={data}
+          {...props}
+          bordered
         />
     </Loading>
   )

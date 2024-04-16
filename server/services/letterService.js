@@ -21,14 +21,31 @@ const getLetter = async (id) => {
     }
 };
 
-const getAllLetter = async (currentPage, pageSize) => {
+const getAllLetter = async (currentPage, pageSize, searchConditions) => {
     try {
-        const letters = await Letter.find()
+        let totalRecords = 0;
+        let letters;
+        // Đếm tổng số lượng bản ghi phù hợp với điều kiện tìm kiếm
+        if (searchConditions) {
+            totalRecords = await Letter.countDocuments(searchConditions);
+            // Tìm kiếm các bản ghi phù hợp với điều kiện tìm kiếm và áp dụng skip và limit
+            letters = await Letter.find(searchConditions)
             .skip((currentPage - 1) * pageSize)
-            .limit(parseInt(pageSize));
-        return letters;
+            .limit(pageSize)
+            .exec();
+        }
+        else {
+            totalRecords = await Letter.countDocuments();
+            // Tìm kiếm các bản ghi phù hợp với điều kiện tìm kiếm và áp dụng skip và limit
+            letters = await Letter.find()
+            .skip((currentPage - 1) * pageSize)
+            .limit(pageSize)
+            .exec();
+        }
+        
+        return { letters, totalRecords };
     } catch (error) {
-        console.error("Lỗi khi lấy tất cả đơn thư:", error);
+        console.error("Lỗi khi tìm kiếm đơn thư:", error);
         return null;
     }
 };
@@ -63,20 +80,13 @@ const deleteLetter = async (id) => {
     }
 };
 
-const searchLetters = async (searchConditions, currentPage, pageSize) => {
-    try {
-        // Đếm tổng số lượng bản ghi phù hợp với điều kiện tìm kiếm
-        const totalRecords = await Letter.countDocuments(searchConditions);
 
-        // Tìm kiếm các bản ghi phù hợp với điều kiện tìm kiếm và áp dụng skip và limit
-        const letters = await Letter.find(searchConditions)
-            .skip((currentPage - 1) * pageSize)
-            .limit(pageSize)
-            .exec();
-        
-        return { letters, totalRecords };
+const deleteMultipleLetters = async (ids) => {
+    try {
+        const deletedLetter = await Letter.deleteMany({ _id: { $in: ids } });
+        return deletedLetter;
     } catch (error) {
-        console.error("Lỗi khi tìm kiếm đơn thư:", error);
+        console.error("Lỗi khi xóa đơn thư:", error);
         return null;
     }
 };
@@ -88,5 +98,5 @@ module.exports = {
     getTotalCount,
     updateLetter,
     deleteLetter,
-    searchLetters
+    deleteMultipleLetters
 };
