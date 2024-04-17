@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { WrapperHeader } from './style';
-import { Button, Col, DatePicker, Form, Row, Space } from "antd";
+import { Button, Col, DatePicker, Form, Row, Space, Upload } from "antd";
 import TableComponent from '../TableComponent/TableComponent';
 import InputComponent from '../InputComponent/InputComponent';
 import ModalComponent from '../ModalComponent/ModalComponent';
@@ -10,12 +10,12 @@ import * as message from '../../components/Message/Message';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
-import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons'
 import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import moment from 'moment';
-
+import PDFPreview from '../PDFPreviewComponent/PDFPreviewComponent';
 export const LetterComponent = () => {
     const [modalForm] = Form.useForm();
     const [drawerForm] = Form.useForm();
@@ -32,6 +32,8 @@ export const LetterComponent = () => {
     const [filters, setFilters] = useState({});
     const [resetSelection, setResetSelection] = useState(false);
     const [tuNgayMoment, setTuNgayMoment] = useState(null);
+    const [previewFile, setPreviewFile] = useState(null);
+    const [uploadedFiles, setUploadedFiles] = useState([]);
     const [denNgayMoment, setDenNgayMoment] = useState(null);
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -701,6 +703,21 @@ export const LetterComponent = () => {
         }
     };
 
+    const handleUpload = (file) => {
+        setUploadedFiles(prevFiles => [...prevFiles, file]);
+    };
+
+    const props = {
+        beforeUpload: (file) => {
+            if (file.type !== 'application/pdf') {
+                message.error(`${file.name} is not a PDF file`);
+                return false;
+            }
+            handleUpload(file);
+            return false;
+        },
+    };
+
     return (
         <div>
             <WrapperHeader>Quản lý đơn thư</WrapperHeader>
@@ -858,9 +875,31 @@ export const LetterComponent = () => {
                                 </Form.Item>
                             </Col>
                         </Row>
-                        <Form.Item wrapperCol={{ offset: 21, span: 24 }}>
-                            <Button type="primary" htmlType="submit">Thêm đơn thư</Button>
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col span={24}>
+                                <Form.Item
+                                    label="Đính kèm file"
+                                    name="dinhKemfile"
+                                    labelCol={{ span: 4 }}
+                                >
+                                    <Upload fileList={uploadedFiles} {...props}>
+                                        <Button icon={<UploadOutlined />}>Click to Upload PDF</Button>
+                                    </Upload>
+                                </Form.Item>
+                            </Col>
+                            {uploadedFiles.map((file, index) => (
+                                <Col span={8} key={index}>
+                                    <PDFPreview file={file} />
+                                </Col>
+                            ))}
+                        </Row>
+                        <Row gutter={[16, 16]}>
+                            <Col span={24}>
+                                <Form.Item wrapperCol={{ offset: 21, span: 24 }}>
+                                    <Button type="primary" htmlType="submit">Thêm đơn thư</Button>
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </Form>
                 </Loading>
             </ModalComponent>
