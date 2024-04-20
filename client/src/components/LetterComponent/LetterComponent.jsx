@@ -10,7 +10,7 @@ import * as message from '../../components/Message/Message';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
-import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, UploadOutlined, EyeOutlined } from '@ant-design/icons'
 import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
@@ -34,6 +34,8 @@ export const LetterComponent = () => {
     const [tuNgayMoment, setTuNgayMoment] = useState(null);
     const [previewFile, setPreviewFile] = useState(null);
     const [uploadedFiles, setUploadedFiles] = useState([]);
+    const [previewModalOpen, setPreviewModalOpen] = useState(false);
+    const [previewFileUrl, setPreviewFileUrl] = useState('');
     const [denNgayMoment, setDenNgayMoment] = useState(null);
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -707,6 +709,21 @@ export const LetterComponent = () => {
         setUploadedFiles(prevFiles => [...prevFiles, file]);
     };
 
+    const handlePreview = (fileUrl) => {
+        setPreviewFileUrl(fileUrl);
+        setPreviewModalOpen(true);
+    };
+
+    const handleCancelPreview = () => {
+        setPreviewModalOpen(false);
+    };
+
+    const handleRemoveFile = (index) => {
+        const newUploadedFiles = [...uploadedFiles];
+        newUploadedFiles.splice(index, 1);
+        setUploadedFiles(newUploadedFiles);
+    };
+
     const props = {
         beforeUpload: (file) => {
             if (file.type !== 'application/pdf') {
@@ -716,6 +733,7 @@ export const LetterComponent = () => {
             handleUpload(file);
             return false;
         },
+        showUploadList: false,
     };
 
     return (
@@ -879,20 +897,33 @@ export const LetterComponent = () => {
                             <Col span={24}>
                                 <Form.Item
                                     label="Đính kèm file"
-                                    name="dinhKemfile"
+                                    
                                     labelCol={{ span: 4 }}
-                                >
-                                    <Upload fileList={uploadedFiles} {...props}>
-                                        <Button icon={<UploadOutlined />}>Click to Upload PDF</Button>
-                                    </Upload>
+                                >   
+                                    <>
+                                        <Upload fileList={uploadedFiles} {...props}>
+                                            <Button icon={<UploadOutlined />}>Upload pdf file</Button>
+                                        </Upload>
+                                        {uploadedFiles.map((file, index) => (
+                                            <div key={index} style={{display: "flex", alignItems: "center"}}>
+                                                {file.name}
+                                                <EyeOutlined style={{ fontSize: '20px', marginLeft: "10px", color: "#1677ff" }} onClick={() => handlePreview(URL.createObjectURL(file))}/>
+                                                <DeleteOutlined style={{ fontSize: '18px', marginLeft: "10px", color: "red" }} onClick={() => handleRemoveFile(index)} />
+                                            </div>
+                                        ))}
+                                    </>
                                 </Form.Item>
                             </Col>
-                            {uploadedFiles.map((file, index) => (
-                                <Col span={8} key={index}>
-                                    <PDFPreview file={file} />
-                                </Col>
-                            ))}
                         </Row>
+                        <ModalComponent
+                            title="Preview PDF"
+                            open={previewModalOpen}
+                            onCancel={handleCancelPreview}
+                            footer={null}
+                            width={800}
+                        >
+                            <iframe src={previewFileUrl} width="100%" height="500px" frameBorder="0" />
+                        </ModalComponent>
                         <Row gutter={[16, 16]}>
                             <Col span={24}>
                                 <Form.Item wrapperCol={{ offset: 21, span: 24 }}>
