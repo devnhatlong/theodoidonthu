@@ -2,14 +2,16 @@ import { Popover } from 'antd'
 import React from 'react'
 import iconUser from "../../assets/icons/icon_user.png";
 import { WrapperContentPopup, WrapperHeaderContainerLogin } from './style';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import userService from '../../services/userService';
 import { getTokenFromCookie } from '../../utils/utils';
+import { clearUser } from '../../redux/userSlice';
 
 export const NavbarLoginComponent = () => {
     const user = useSelector((state) => state.user);
     const navigate = useNavigate(); 
+    const dispatch = useDispatch();
 
     const content = (
         <div>
@@ -26,7 +28,8 @@ export const NavbarLoginComponent = () => {
             // Clear tokens from cookie
             document.cookie = "accessToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "refreshToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            // Redirect to login page
+            // clear redux
+            dispatch(clearUser());
         }
 
         navigate("/login");

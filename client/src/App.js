@@ -1,43 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import "./styles/sb-admin-2.min.css";
+import { Login } from './pages/Login/Login';
+import PrivateRoute from './routes/PrivateRoute';
+import { Dashboard } from './pages/Dashboard/Dashboard';
 import userService from './services/userService';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setUser } from './redux/userSlice';
-import Loading from "./components/LoadingComponent/Loading";
 import { handleDecoded } from './utils/utils';
-import AppRoutes from "./routes/AppRoutes";
+import Loading from './components/LoadingComponent/Loading';
 
 function App() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleGetDetailsUser = async (accessToken) => {
-    const response = await userService.getUser(accessToken);
-    dispatch(setUser(response.result));
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
+  
+  const handleGetDetailsUser = async () => {
     setIsLoading(true);
     const { accessToken, decoded } = handleDecoded();
 
     if (decoded?._id) {
-      handleGetDetailsUser(accessToken);
+      const response = await userService.getUser(accessToken);
+      dispatch(setUser(response.result));
     }
     setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleGetDetailsUser, handleDecoded])
+  };
+
+  useEffect(() => {
+    handleGetDetailsUser();
+  }, []); 
 
   return (
-    <Loading isLoading = {isLoading}>
+    <Loading isLoading={isLoading}>
       <div className="App" id="wrapper">
-        {!isLoading && ( // Render AppRoutes chỉ khi dữ liệu user đã được load
-            <Router>
-              <AppRoutes />
-            </Router>
-        )}
+        <Router>
+          <Routes>
+            <Route element={<PrivateRoute />}>
+              <Route path="/" element={<Dashboard />} exact/>
+            </Route>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </Router>
       </div>
     </Loading>
   );

@@ -8,7 +8,7 @@ import { Menu } from 'antd';
 
 export const Dashboard = () => {
     const items  = [
-        getItem('Người dùng', 'user', <UserOutlined />),
+        // getItem('Người dùng', 'user', <UserOutlined />),
     
         getItem('Đơn thư', 'letter', <MailOutlined />),
     ];

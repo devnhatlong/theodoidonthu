@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux'; // Thêm useDispatch
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux'; // Thêm useDispatch
 import { useNavigate } from "react-router-dom";
 import backgroundImage from "../../assets/images/bg_login.jpg";
 import userService from '../../services/userService';
 import { setUser } from '../../redux/userSlice'; // Import action
+import Loading from '../../components/LoadingComponent/Loading';
 
 export const Login = () => {
+    const user = useSelector((state) => state.user);
     const dispatch = useDispatch(); // Sử dụng useDispatch
     const navigate = useNavigate(); 
 
@@ -25,9 +27,6 @@ export const Login = () => {
                 // Lưu accessToken vào cookie
                 document.cookie = `accessToken=${response.accessToken}; path=/`;
                 document.cookie = `refreshToken=${response.newRefreshToken}; path=/`;
-                // localStorage.setItem("")
-                // Chuyển hướng đến /dashboard
-                navigate('/');
             } else {
                 console.error(response.message);
             }
@@ -35,6 +34,13 @@ export const Login = () => {
             console.error('Error:', error);
         }
     };
+
+    useEffect(() => {
+        // Kiểm tra nếu người dùng đã đăng nhập thì chuyển hướng đến trang '/'
+        if (user._id) {
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     return (
         <div className="outer-container" style={{backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '100vh', width: "100%"}}>

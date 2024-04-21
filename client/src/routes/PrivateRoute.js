@@ -1,25 +1,14 @@
-import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate, useLocation  } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import {  useSelector } from 'react-redux';
 
-const PrivateRoute = (props) => {
+const PrivateRoute = ({ children }) => {
     const user = useSelector((state) => state.user);
-    const navigate = useNavigate(); 
-    const currentLocation = useLocation();
-    console.log("PrivateRoute-user: ", user);
-
-    // useEffect(() => {
-    //     if (user._id === "" && currentLocation.pathname !== '/login') {
-    //         console.log("PrivateRoute-user1: ", user);
-    //         navigate('/login');
-    //     }
-    // }, [user, currentLocation.pathname, navigate]);
+    const [isLoading, setIsLoading] = useState(true);
 
     return (
-        <>
-            {props.children}
-        </>
-    )
+        user._id ? <Outlet /> : <Navigate to="/login" />
+    );
 }
 
 export default PrivateRoute;
