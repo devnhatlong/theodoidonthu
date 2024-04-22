@@ -151,6 +151,8 @@ export const LetterComponent = () => {
             uploadedFiles: []
         });
 
+        setUploadedFiles([]);
+
         modalForm.resetFields();
     }
 
@@ -951,7 +953,7 @@ export const LetterComponent = () => {
                         <Row gutter={[16, 16]}>
                             <Col span={24}>
                                 <Form.Item wrapperCol={{ offset: 21, span: 24 }}>
-                                    <Button type="primary" htmlType="submit">Thêm đơn thư</Button>
+                                    <Button type="primary" htmlType="submit">Tạo đơn thư</Button>
                                 </Form.Item>
                             </Col>
                         </Row>
