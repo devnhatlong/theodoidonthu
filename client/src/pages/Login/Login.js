@@ -27,6 +27,9 @@ export const Login = () => {
                 // Lưu accessToken vào cookie
                 document.cookie = `accessToken=${response.accessToken}; path=/`;
                 document.cookie = `refreshToken=${response.newRefreshToken}; path=/`;
+                // localStorage.setItem("")
+                // Chuyển hướng đến /dashboard
+                // navigate('/');
             } else {
                 console.error(response.message);
             }

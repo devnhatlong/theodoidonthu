@@ -1,4 +1,5 @@
 const mongoose = require('mongoose'); // Erase if already required
+const FileSchema = require('./fileModel');
 
 // Declare the Schema of the Mongo model
 var letterSchema = new mongoose.Schema({
@@ -42,6 +43,7 @@ var letterSchema = new mongoose.Schema({
     trichYeu:{
         type:String
     },
+    files: [FileSchema.schema]
 }, {
     timestamps: true
 });

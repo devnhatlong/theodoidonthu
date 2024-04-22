@@ -15,7 +15,7 @@ import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import moment from 'moment';
-import PDFPreview from '../PDFPreviewComponent/PDFPreviewComponent';
+
 export const LetterComponent = () => {
     const [modalForm] = Form.useForm();
     const [drawerForm] = Form.useForm();
@@ -32,7 +32,6 @@ export const LetterComponent = () => {
     const [filters, setFilters] = useState({});
     const [resetSelection, setResetSelection] = useState(false);
     const [tuNgayMoment, setTuNgayMoment] = useState(null);
-    const [previewFile, setPreviewFile] = useState(null);
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [previewFileUrl, setPreviewFileUrl] = useState('');
@@ -53,7 +52,8 @@ export const LetterComponent = () => {
         chuyen1: "",
         chuyen2: "",
         ghiChu: "",
-        trichYeu: ""
+        trichYeu: "",
+        uploadedFiles: []
     });
 
     const [stateLetterDetail, setStateLetterDetail] = useState({
@@ -67,7 +67,8 @@ export const LetterComponent = () => {
         chuyen1: "",
         chuyen2: "",
         ghiChu: "",
-        trichYeu: ""
+        trichYeu: "",
+        uploadedFiles: []
     });
     
     const mutation = useMutationHooks(
@@ -83,7 +84,8 @@ export const LetterComponent = () => {
                 chuyen1,
                 chuyen2,
                 ghiChu,
-                trichYeu 
+                trichYeu,
+                uploadedFiles
             } = data;
 
             const response = letterService.createLetter({
@@ -97,7 +99,8 @@ export const LetterComponent = () => {
                 chuyen1,
                 chuyen2,
                 ghiChu,
-                trichYeu 
+                trichYeu,
+                uploadedFiles
             });
 
             return response;
@@ -144,7 +147,8 @@ export const LetterComponent = () => {
             chuyen1: "",
             chuyen2: "",
             ghiChu: "",
-            trichYeu: ""
+            trichYeu: "",
+            uploadedFiles: []
         });
 
         modalForm.resetFields();
@@ -736,6 +740,26 @@ export const LetterComponent = () => {
         showUploadList: false,
     };
 
+    const handleFileChange = (info) => {
+        const { name, size, type } = info.file;
+        const uploadedFile = {
+            name,
+            size,
+            type
+        };
+
+        handleUploadFile(uploadedFile);
+    };
+
+    // Xử lý sự kiện khi người dùng tải lên tập tin
+    const handleUploadFile = (file) => {
+        const updatedFiles = [...stateLetter.uploadedFiles, file];
+        setStateLetter(prevState => ({
+            ...prevState,
+            uploadedFiles: updatedFiles
+        }));
+    };
+    console.log("stateLetter: ", stateLetter)
     return (
         <div>
             <WrapperHeader>Quản lý đơn thư</WrapperHeader>
@@ -889,7 +913,7 @@ export const LetterComponent = () => {
                                     name="trichYeu"
                                     labelCol={{ span: 4 }}
                                 >
-                                    <InputComponent name="trichYeu" value={stateLetter.trichYeu} onChange={handleOnChange} />
+                                    <InputComponent name="trichYeu" value={stateLetter.trichYeu} onChange={(e) => handleOnChange('trichYeu', e.target.value)} />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -901,7 +925,7 @@ export const LetterComponent = () => {
                                     labelCol={{ span: 4 }}
                                 >   
                                     <>
-                                        <Upload fileList={uploadedFiles} {...props}>
+                                        <Upload onChange={handleFileChange} fileList={uploadedFiles} {...props}>
                                             <Button icon={<UploadOutlined />}>Upload pdf file</Button>
                                         </Upload>
                                         {uploadedFiles.map((file, index) => (
