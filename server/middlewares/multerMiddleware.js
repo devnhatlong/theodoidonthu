@@ -1,19 +1,13 @@
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Thư mục lưu trữ tập tin tải lên
+        cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname); // Đặt tên cho tệp tải lên
+        const fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        cb(null, fileName);
     }
 });
 const upload = multer({ storage: storage });
 
-// Middleware để ghi log thông tin về tệp đã được tải lên
-const logUploadedFiles = (req, res, next) => {
-    console.log("Uploaded files req:", req);
-    console.log("Uploaded files:", req.body.uploadedFiles);
-    next();
-};
-
-module.exports = { upload, logUploadedFiles };
+module.exports = { upload };

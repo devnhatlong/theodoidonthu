@@ -13,7 +13,7 @@ const createLetter = asyncHandler(async (req, res) => {
         });
     }
 
-    const response = await LetterService.createLetter(req.body);
+    const response = await LetterService.createLetter(req.body, req.files);
     return res.status(200).json({
         success: response.success,
         message: response.success ? "Tạo đơn thư thành công" : "Số đến đã tồn tại"

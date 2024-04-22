@@ -1,16 +1,23 @@
 const Letter = require("../models/letterModel");
 const File = require('../models/fileModel'); // Import mô hình tập tin
 
-const createLetter = async (letterData) => {
+const createLetter = async (letterData, fileDataList) => {
     try {
-        const { uploadedFiles, ...rest } = letterData;
-
         // Tạo một đối tượng Letter mới từ các trường không phải là tập tin
-        const newLetter = await Letter.create(rest);
+        const newLetter = await Letter.create(letterData);
 
-        // Lặp qua mảng uploadedFiles và lưu mỗi tệp vào cơ sở dữ liệu
-        for (const fileData of uploadedFiles) {
-            const newFile = await File.create(fileData);
+        // Lặp qua mảng fileDataList và lưu mỗi tệp vào cơ sở dữ liệu
+        for (const fileData of fileDataList) {
+            console.log("fileData: ", fileData)
+            // Tạo đối tượng FileSchema mới từ dữ liệu tệp
+            const newFile = new File({
+                name: fileData.filename,
+                size: fileData.size,
+                type: fileData.mimetype,
+                path: fileData.path
+            });
+            // Lưu đối tượng FileSchema vào cơ sở dữ liệu
+            await newFile.save();
             // Thêm ID của tệp vào mảng files của đơn thư
             newLetter.files.push(newFile);
         }

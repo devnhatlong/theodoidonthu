@@ -63,7 +63,26 @@ const redirectToLogin = () => {
 const letterService = {
     createLetter: async (data) => {
         try {
-            const response = await axiosJWTLetter.post(`${process.env.REACT_APP_SERVER_URL}/letter/create-letter`, data);
+            const formData = new FormData();
+    
+            // Thêm các trường dữ liệu khác vào FormData
+            Object.keys(data).forEach(key => {
+                if (key !== 'uploadedFiles') {
+                    formData.append(key, data[key]);
+                }
+            });
+    
+            // Thêm các file vào FormData
+            data.uploadedFiles.forEach(file => {
+                formData.append('uploadedFiles', file);
+            });
+    
+            // Gửi yêu cầu POST với FormData
+            const response = await axiosJWTLetter.post(`${process.env.REACT_APP_SERVER_URL}/letter/create-letter`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             return response.data;
         } 
         catch (error) {

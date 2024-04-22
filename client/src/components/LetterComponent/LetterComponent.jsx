@@ -743,14 +743,7 @@ export const LetterComponent = () => {
     };
 
     const handleFileChange = (info) => {
-        const { name, size, type } = info.file;
-        const uploadedFile = {
-            name,
-            size,
-            type
-        };
-
-        handleUploadFile(uploadedFile);
+        handleUploadFile(info.file);
     };
 
     // Xử lý sự kiện khi người dùng tải lên tập tin
@@ -761,7 +754,7 @@ export const LetterComponent = () => {
             uploadedFiles: updatedFiles
         }));
     };
-    console.log("stateLetter: ", stateLetter)
+
     return (
         <div>
             <WrapperHeader>Quản lý đơn thư</WrapperHeader>

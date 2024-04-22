@@ -5,7 +5,7 @@ var fileSchema = new mongoose.Schema({
     name: String,
     size: Number,
     type: String,
-    data: Buffer // Lưu trữ dữ liệu thực tế của tệp trong dạng Buffer
+    path: String
 });
 
 //Export the model

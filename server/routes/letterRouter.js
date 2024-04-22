@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const ctrls = require("../controllers/letterController");
-const { upload, logUploadedFiles } = require('../middlewares/multerMiddleware');
+const { upload } = require('../middlewares/multerMiddleware');
 const { verifyAccessToken } = require("../middlewares/verifyToken");
 
-router.post("/create-letter", verifyAccessToken, ctrls.createLetter);
+router.post("/create-letter", verifyAccessToken, upload.array("uploadedFiles"), ctrls.createLetter);
 router.get("/get-letter/:id", verifyAccessToken, ctrls.getLetter);
 router.get("/get-all-letter", verifyAccessToken, ctrls.getAllLetter);
 router.put("/update-letter/:id", verifyAccessToken, ctrls.updateLetter);
