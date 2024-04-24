@@ -5,8 +5,9 @@ var fileSchema = new mongoose.Schema({
     name: String,
     size: Number,
     type: String,
-    path: String
+    path: String,
+    data: Buffer
 });
 
 //Export the model
-module.exports = mongoose.model('FileSchema', fileSchema);
+module.exports = mongoose.model('File', fileSchema);

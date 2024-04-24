@@ -70,7 +70,7 @@ const updateLetter = asyncHandler(async (req, res) => {
 
     if (!id) throw new Error("Thiếu id");
 
-    const response = await LetterService.updateLetter(id, req.body);
+    const response = await LetterService.updateLetter(id, req.body, req.files);
 
     return res.status(200).json({
         success: response ? true : false,

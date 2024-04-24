@@ -15,6 +15,7 @@ import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import moment from 'moment';
+import { convertFileDataToFiles } from '../../utils/utils';
 
 export const LetterComponent = () => {
     const [modalForm] = Form.useForm();
@@ -36,6 +37,8 @@ export const LetterComponent = () => {
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [previewFileUrl, setPreviewFileUrl] = useState('');
     const [denNgayMoment, setDenNgayMoment] = useState(null);
+    const [previewFileUrlDetail, setPreviewFileUrlDetail] = useState('');
+    const [previewModalDetailOpen, setPreviewModalDetailOpen] = useState(false);
     const [pagination, setPagination] = useState({
         currentPage: 1,
         pageSize: 5 // Số lượng mục trên mỗi trang
@@ -71,6 +74,8 @@ export const LetterComponent = () => {
         uploadedFiles: []
     });
     
+    const [attachedFiles, setAttachedFiles] = useState(stateLetterDetail.uploadedFiles);
+
     const mutation = useMutationHooks(
         (data) => {
             const { 
@@ -156,11 +161,6 @@ export const LetterComponent = () => {
         modalForm.resetFields();
     }
 
-    const handleCloseDraw = () => {
-        setIsOpenDrawer(false);
-        // drawerForm.resetFields();
-    }
-
     const { data, isSuccess, isError, isPending } = mutation;
     const { data: dataUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated, isPending: isPendingUpdated } = mutationUpdate;
     const { data: dataDeleted, isSuccess: isSuccessDeleted, isError: isErrorDeleted, isPending: isLoadingDeleted } = mutationDeleted;
@@ -176,6 +176,22 @@ export const LetterComponent = () => {
         const response = await letterService.getDetailLetter(rowSelected);
 
         if (response?.letter) {
+            const files = convertFileDataToFiles(response?.letter?.files);
+
+            setInitialStateLetterDetail({
+                soDen: response?.letter?.soDen,
+                ngayDen: response?.letter?.ngayDen,
+                soVanBan: response?.letter?.soVanBan,
+                ngayDon: response?.letter?.ngayDon,
+                nguoiGui: response?.letter?.nguoiGui,
+                diaChi: response?.letter?.diaChi,
+                lanhDao: response?.letter?.lanhDao,
+                chuyen1: response?.letter?.chuyen1,
+                chuyen2: response?.letter?.chuyen2,
+                ghiChu: response?.letter?.ghiChu,
+                trichYeu: response?.letter?.trichYeu,
+                uploadedFiles: files
+            });
             setStateLetterDetail({
                 soDen: response?.letter?.soDen,
                 ngayDen: response?.letter?.ngayDen,
@@ -188,6 +204,7 @@ export const LetterComponent = () => {
                 chuyen2: response?.letter?.chuyen2,
                 ghiChu: response?.letter?.ghiChu,
                 trichYeu: response?.letter?.trichYeu,
+                uploadedFiles: files
             })
         }
         setIsLoadingUpdate(false);
@@ -203,6 +220,10 @@ export const LetterComponent = () => {
             fetchGetDetailLetter(rowSelected);
         }
     }, [rowSelected])
+
+    useEffect(() => {
+        setAttachedFiles(stateLetterDetail.uploadedFiles);
+    }, [stateLetterDetail.uploadedFiles]);
 
     const handleDetailLetter = () => {
         setIsOpenDrawer(true);
@@ -246,7 +267,7 @@ export const LetterComponent = () => {
     useEffect(() => {
         if(isSuccessUpdated && dataUpdated?.success) {
             message.success("Cập nhật đơn thư thành công");
-            handleCloseDraw();
+            handleCloseDrawer();
         }
         else if (isError) {
             message.error("Có gì đó sai sai");
@@ -268,7 +289,6 @@ export const LetterComponent = () => {
 
     useEffect(() => {
         if (isSuccessDeletedMultiple && dataDeletedMultiple) {
-            console.log("dataDeletedMultiple: ", dataDeletedMultiple)
             if (dataDeletedMultiple.deletedLetter.deletedCount > 0) {
                 message.success("Xóa đơn thư thành công");
             } else {
@@ -290,18 +310,22 @@ export const LetterComponent = () => {
             }
         });
     }
-
     const onUpdateLetter = async () => {
+        // Lấy dữ liệu từ stateLetterDetail và đổi tên key uploadedFiles thành files
+        const { uploadedFiles, ...letterData } = stateLetterDetail;
+        const updatedLetterData = { ...letterData, files: uploadedFiles };
+    
         mutationUpdate.mutate(
             {
                 id: rowSelected,
-                ...stateLetterDetail
+                ...updatedLetterData
             }, 
             {
-            onSettled: () => {
-                queryLetter.refetch();
+                onSettled: () => {
+                    queryLetter.refetch();
+                }
             }
-        });
+        );
     }
 
     const handleDeleteLetter = () => {
@@ -359,7 +383,6 @@ export const LetterComponent = () => {
     };
 
     const handleOnChangeDetail = (name, value) => {
-        console.log()
         setStateLetterDetail({
             ...stateLetterDetail,
             [name]: value
@@ -754,6 +777,57 @@ export const LetterComponent = () => {
             uploadedFiles: updatedFiles
         }));
     };
+    
+    // Đóng DrawerComponent
+    const handleCloseDrawer = () => {
+        fetchGetDetailLetter(rowSelected);
+        setIsOpenDrawer(false);
+    };
+    
+    // Hàm xử lý sự kiện khi ấn vào biểu tượng EyeOutlined
+    const handlePreviewFileDetail = (file) => {
+        // Kiểm tra xem file có đường dẫn hay không
+        if (file.path) {
+            // Nếu có đường dẫn, sử dụng đường dẫn từ server
+            const fileUrl = `${process.env.REACT_APP_SERVER_URL}/${file.path}`;
+            setPreviewFileUrlDetail(fileUrl);
+        } else { 
+            // Nếu không có đường dẫn, tạo URL từ đối tượng file
+            const fileUrl = URL.createObjectURL(file);
+            setPreviewFileUrlDetail(fileUrl);
+        }
+        // Mở modal xem trước
+        setPreviewModalDetailOpen(true);
+    };
+
+    // Hàm xử lý sự kiện khi đóng modal xem trước
+    const handleCancelPreviewDetail = () => {
+        // Đặt URL trong state về trống để đóng modal
+        setPreviewFileUrlDetail('');
+        setPreviewModalDetailOpen(false);
+    };
+
+    const handleFileDetailChange = (info) => {
+        handleUploadDetailFile(info.file);
+    };
+
+    // Xử lý sự kiện khi người dùng tải lên tập tin
+    const handleUploadDetailFile = (file) => {
+        const updatedFiles = [...stateLetterDetail.uploadedFiles, file];
+        setStateLetterDetail(prevState => ({
+            ...prevState,
+            uploadedFiles: updatedFiles
+        }));
+    };
+    
+    const handleRemoveFileDetail = (index) => {
+        const newUploadedFiles = [...stateLetterDetail.uploadedFiles];
+        newUploadedFiles.splice(index, 1);
+        setStateLetterDetail(prevState => ({
+            ...prevState,
+            uploadedFiles: newUploadedFiles
+        }));
+    };
 
     return (
         <div>
@@ -768,6 +842,7 @@ export const LetterComponent = () => {
                         pageSize: pagination.pageSize,
                         total: letters?.totalRecord,
                         onChange: handlePageChange,
+                        showSizeChanger: false
                     }}
                     onRow={(record, rowIndex) => {
                         return {
@@ -953,7 +1028,7 @@ export const LetterComponent = () => {
                     </Form>
                 </Loading>
             </ModalComponent>
-            <DrawerComponent form={drawerForm} title="Chi tiết đơn thư" isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="60%">
+            <DrawerComponent form={drawerForm} title="Chi tiết đơn thư" isOpen={isOpenDrawer} onClose={handleCloseDrawer} width="60%">
                 <Loading isLoading = {isLoadingUpdate}>
                     <Form
                         name="drawerForm"
@@ -1085,6 +1160,36 @@ export const LetterComponent = () => {
                                 </Form.Item>
                             </Col>
                         </Row>
+                        <Row gutter={[16, 16]}>
+                            <Col span={24}>
+                                <Form.Item
+                                    label="Đính kèm file"
+                                    labelCol={{ span: 4 }}
+                                >
+                                    <>
+                                        <Upload onChange={handleFileDetailChange} fileList={stateLetterDetail.uploadedFiles} {...props}>
+                                            <Button icon={<UploadOutlined />}>Upload pdf file</Button>
+                                        </Upload>
+                                        {stateLetterDetail.uploadedFiles.map((file, index) => (
+                                            <div key={index} style={{display: "flex", alignItems: "center"}}>
+                                                {file.name}
+                                                <EyeOutlined style={{ fontSize: '20px', marginLeft: "10px", color: "#1677ff" }} onClick={() => handlePreviewFileDetail(file)}/>
+                                                <DeleteOutlined style={{ fontSize: '18px', marginLeft: "10px", color: "red" }} onClick={() => handleRemoveFileDetail(index)} />
+                                            </div>
+                                        ))}
+                                    </>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <ModalComponent
+                            title="Preview PDF Detail"
+                            open={previewModalDetailOpen}
+                            onCancel={handleCancelPreviewDetail}
+                            footer={null}
+                            width={800}
+                        >
+                            <iframe src={previewFileUrlDetail} width="100%" height="500px" frameBorder="0" />
+                        </ModalComponent>
                         <Form.Item wrapperCol={{ offset: 20, span: 24 }}>
                             <Button type="primary" htmlType="submit">Cập nhật đơn thư</Button>
                         </Form.Item>

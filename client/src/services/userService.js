@@ -6,7 +6,6 @@ export const axiosJWT = axios.create();
 // Add a request interceptor to add the JWT token to the authorization header
 axiosJWT.interceptors.request.use(
     (config) => {
-        console.log("interceptors.request")
         const accessToken = getTokenFromCookie("accessToken");
 
         if (accessToken) {

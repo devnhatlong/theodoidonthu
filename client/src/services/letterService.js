@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getTokenFromCookie } from '../utils/utils';
 import userService from './userService';
-const moment = require('moment-timezone');
+
 export const axiosJWTLetter = axios.create();
 
 // Add a request interceptor to add the JWT token to the authorization header
@@ -115,7 +115,24 @@ const letterService = {
     },
     updateLetter: async (id, data) => {
         try {
-            const response = await axiosJWTLetter.put(`${process.env.REACT_APP_SERVER_URL}/letter/update-letter/${id}`, data);
+            const formData = new FormData();
+            // Thêm các trường dữ liệu khác vào FormData
+            Object.keys(data).forEach(key => {
+                if (key !== 'files') {
+                    formData.append(key, data[key]);
+                }
+            });
+
+            // Thêm các file vào FormData
+            data.files.forEach(file => {
+                formData.append('files', file);
+            });
+
+            const response = await axiosJWTLetter.put(`${process.env.REACT_APP_SERVER_URL}/letter/update-letter/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             return response.data;
         } catch (error) {
             console.log(error);

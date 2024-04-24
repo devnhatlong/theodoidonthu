@@ -31,3 +31,11 @@ export function getItem(label, key, icon, children, type) {
       type,
     };
 }
+
+export const convertFileDataToFiles = (fileDataList) => {
+    return fileDataList.map(fileData => {
+        const file = new File([null], fileData.name, { type: fileData.type });
+        file.path = fileData.path;
+        return file;
+    });
+};
