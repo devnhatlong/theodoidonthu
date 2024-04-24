@@ -178,20 +178,6 @@ export const LetterComponent = () => {
         if (response?.letter) {
             const files = convertFileDataToFiles(response?.letter?.files);
 
-            setInitialStateLetterDetail({
-                soDen: response?.letter?.soDen,
-                ngayDen: response?.letter?.ngayDen,
-                soVanBan: response?.letter?.soVanBan,
-                ngayDon: response?.letter?.ngayDon,
-                nguoiGui: response?.letter?.nguoiGui,
-                diaChi: response?.letter?.diaChi,
-                lanhDao: response?.letter?.lanhDao,
-                chuyen1: response?.letter?.chuyen1,
-                chuyen2: response?.letter?.chuyen2,
-                ghiChu: response?.letter?.ghiChu,
-                trichYeu: response?.letter?.trichYeu,
-                uploadedFiles: files
-            });
             setStateLetterDetail({
                 soDen: response?.letter?.soDen,
                 ngayDen: response?.letter?.ngayDen,
