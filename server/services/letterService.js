@@ -2,10 +2,16 @@ const Letter = require("../models/letterModel");
 const File = require('../models/fileModel'); // Import mô hình tập tin
 const fs = require('fs');
 
-const createLetter = async (letterData, fileDataList) => {
+const createLetter = async (letterData, fileDataList, userId) => {
     try {
+        const existingLetter = await Letter.findOne({ soDen: letterData.soDen, userId: userId });
+
+        if (existingLetter) {
+            throw new Error('Số đến đã tồn tại cho người dùng này.');
+        }
+
         // Tạo một đối tượng Letter mới từ các trường không phải là tập tin
-        const newLetter = await Letter.create(letterData);
+        const newLetter = await Letter.create({ ...letterData, userId: userId});
 
         // Lặp qua mảng fileDataList và thêm thông tin của mỗi tệp vào mảng files của đơn thư
         const files = fileDataList.map(fileData => ({
@@ -128,9 +134,9 @@ const createLetter = async (letterData, fileDataList) => {
 //     }
 // };
 
-const getLetter = async (id) => {
+const getLetter = async (id, userId) => {
     try {
-        const letter = await Letter.findById(id);
+        const letter = await Letter.findById({ _id: id, userId: userId });
         return letter;
     } catch (error) {
         console.error("Lỗi khi lấy đơn thư:", error);
@@ -138,7 +144,7 @@ const getLetter = async (id) => {
     }
 };
 
-const getAllLetter = async (currentPage, pageSize, searchConditions) => {
+const getAllLetter = async (currentPage, pageSize, searchConditions, userId) => {
     try {
         let totalRecords = 0;
         let letters;
@@ -146,23 +152,23 @@ const getAllLetter = async (currentPage, pageSize, searchConditions) => {
         if (currentPage === 0 && pageSize === 0) {
             // Trường hợp lấy tất cả dữ liệu
             if (searchConditions) {
-                totalRecords = await Letter.countDocuments(searchConditions);
-                letters = await Letter.find(searchConditions).exec();
+                totalRecords = await Letter.countDocuments({ ...searchConditions, userId: userId });
+                letters = await Letter.find({ ...searchConditions, userId: userId }).exec();
             } else {
-                totalRecords = await Letter.countDocuments();
-                letters = await Letter.find().exec();
+                totalRecords = await Letter.countDocuments({ userId: userId });
+                letters = await Letter.find({ userId: userId }).exec();
             }
         } else {
             // Trường hợp áp dụng phân trang
             if (searchConditions) {
-                totalRecords = await Letter.countDocuments(searchConditions);
-                letters = await Letter.find(searchConditions)
+                totalRecords = await Letter.countDocuments({ ...searchConditions, userId: userId });
+                letters = await Letter.find({ ...searchConditions, userId: userId })
                     .skip((currentPage - 1) * pageSize)
                     .limit(pageSize)
                     .exec();
             } else {
-                totalRecords = await Letter.countDocuments();
-                letters = await Letter.find()
+                totalRecords = await Letter.countDocuments({ userId: userId });
+                letters = await Letter.find({ userId: userId })
                     .skip((currentPage - 1) * pageSize)
                     .limit(pageSize)
                     .exec();
@@ -176,17 +182,7 @@ const getAllLetter = async (currentPage, pageSize, searchConditions) => {
     }
 };
 
-const getTotalCount = async () => {
-    try {
-        const totalCount = await Letter.countDocuments();
-        return totalCount;
-    } catch (error) {
-        console.error("Lỗi khi lấy tổng số đơn thư:", error);
-        return 0;
-    }
-};
-
-const updateLetter = async (id, updateData, fileDataList) => {
+const updateLetter = async (id, updateData, fileDataList, userId) => {
     try {
         // Chuyển đổi dữ liệu tệp từ fileDataList
         const files = fileDataList.map(fileData => ({
@@ -205,7 +201,7 @@ const updateLetter = async (id, updateData, fileDataList) => {
         }
 
         // Thực hiện cập nhật đơn thư
-        const updatedLetter = await Letter.findByIdAndUpdate(id, updateData, { new: true });
+        const updatedLetter = await Letter.findByIdAndUpdate(id, { ...updateData, userId: userId }, { new: true });
         return updatedLetter;
     } catch (error) {
         console.error("Lỗi khi cập nhật đơn thư:", error);
@@ -213,9 +209,9 @@ const updateLetter = async (id, updateData, fileDataList) => {
     }
 };
 
-const deleteLetter = async (id) => {
+const deleteLetter = async (id, userId) => {
     try {
-        const deletedLetter = await Letter.findByIdAndDelete(id);
+        const deletedLetter = await Letter.findByIdAndDelete({ _id: id, userId: userId });
         return deletedLetter;
     } catch (error) {
         console.error("Lỗi khi xóa đơn thư:", error);
@@ -224,9 +220,9 @@ const deleteLetter = async (id) => {
 };
 
 
-const deleteMultipleLetters = async (ids) => {
+const deleteMultipleLetters = async (ids, userId) => {
     try {
-        const deletedLetter = await Letter.deleteMany({ _id: { $in: ids } });
+        const deletedLetter = await Letter.deleteMany({ _id: { $in: ids }, userId: userId });
         return deletedLetter;
     } catch (error) {
         console.error("Lỗi khi xóa đơn thư:", error);
@@ -238,7 +234,6 @@ module.exports = {
     createLetter,
     getLetter,
     getAllLetter,
-    getTotalCount,
     updateLetter,
     deleteLetter,
     deleteMultipleLetters

@@ -3,10 +3,14 @@ const FileSchema = require('./fileModel');
 
 // Declare the Schema of the Mongo model
 var letterSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId, // Reference to User model
+        ref: 'User', // Refers to the User model
+        required: true
+    },
     soDen:{
         type:Number,
-        required:true,
-        unique:true
+        required:true
     },
     ngayDen:{
         type:Date,

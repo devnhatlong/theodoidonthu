@@ -5,6 +5,7 @@ require('moment-timezone');
 
 const createLetter = asyncHandler(async (req, res) => {
     const { soDen, ngayDen, ngayDon, nguoiGui, diaChi, lanhDao } = req.body;
+    const { _id } = req.user;
 
     if (!soDen || !ngayDen || !ngayDon || !nguoiGui || !diaChi || !lanhDao) {
         return res.status(400).json({
@@ -13,7 +14,7 @@ const createLetter = asyncHandler(async (req, res) => {
         });
     }
 
-    const response = await LetterService.createLetter(req.body, req.files);
+    const response = await LetterService.createLetter(req.body, req.files, _id);
     return res.status(200).json({
         success: response.success,
         message: response.success ? "Tạo đơn thư thành công" : "Số đến đã tồn tại"
@@ -22,7 +23,9 @@ const createLetter = asyncHandler(async (req, res) => {
 
 const getLetter = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const response = await LetterService.getLetter(id);
+    const { _id } = req.user;
+
+    const response = await LetterService.getLetter(id, _id);
     return res.status(200).json({
         success: response ? true : false,
         letter: response ? response : "Không tìm thấy đơn thư"
@@ -32,6 +35,7 @@ const getLetter = asyncHandler(async (req, res) => {
 const getAllLetter = asyncHandler(async (req, res) => {
     let { soDen, ngayDen, soVanBan, ngayDon, nguoiGui, diaChi, lanhDao, chuyen1, chuyen2, ghiChu, trichYeu, tuNgay, denNgay } = req.query.filters || {};
     const { currentPage, pageSize } = req.query;
+    const { _id } = req.user;
 
     // Xây dựng các điều kiện tìm kiếm dựa trên các tham số được cung cấp
     const searchConditions = {};
@@ -55,7 +59,7 @@ const getAllLetter = asyncHandler(async (req, res) => {
         };
     }
 
-    const response = await LetterService.getAllLetter(currentPage, pageSize, searchConditions);
+    const response = await LetterService.getAllLetter(currentPage, pageSize, searchConditions, _id);
 
     // Trả về danh sách các đơn thư phù hợp với yêu cầu tìm kiếm
     return res.status(200).json({
@@ -67,10 +71,11 @@ const getAllLetter = asyncHandler(async (req, res) => {
 
 const updateLetter = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const { _id } = req.user;
 
     if (!id) throw new Error("Thiếu id");
 
-    const response = await LetterService.updateLetter(id, req.body, req.files);
+    const response = await LetterService.updateLetter(id, req.body, req.files, _id);
 
     return res.status(200).json({
         success: response ? true : false,
@@ -80,10 +85,11 @@ const updateLetter = asyncHandler(async (req, res) => {
 
 const deleteLetter = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const { _id } = req.user;
 
     if (!id) throw new Error("Thiếu id");
 
-    const response = await LetterService.deleteLetter(id);
+    const response = await LetterService.deleteLetter(id, _id);
 
     return res.status(200).json({
         success: response ? true : false,
@@ -93,10 +99,11 @@ const deleteLetter = asyncHandler(async (req, res) => {
 
 const deleteMultipleLetters = asyncHandler(async (req, res) => {
     const { ids } = req.body;
+    const { _id } = req.user;
 
     if (!ids) throw new Error("Thiếu id");
 
-    const response = await LetterService.deleteMultipleLetters(ids);
+    const response = await LetterService.deleteMultipleLetters(ids, _id);
 
     return res.status(200).json({
         success: response ? true : false,
