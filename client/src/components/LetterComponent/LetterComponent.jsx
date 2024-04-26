@@ -10,12 +10,14 @@ import * as message from '../../components/Message/Message';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
-import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, UploadOutlined, EyeOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, 
+        UploadOutlined, EyeOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons'
 import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import moment from 'moment';
 import { convertFileDataToFiles } from '../../utils/utils';
+import * as ExcelJS from 'exceljs';
 
 export const LetterComponent = () => {
     const [modalForm] = Form.useForm();
@@ -33,10 +35,10 @@ export const LetterComponent = () => {
     const [filters, setFilters] = useState({});
     const [resetSelection, setResetSelection] = useState(false);
     const [tuNgayMoment, setTuNgayMoment] = useState(null);
+    const [denNgayMoment, setDenNgayMoment] = useState(null);
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const [previewFileUrl, setPreviewFileUrl] = useState('');
-    const [denNgayMoment, setDenNgayMoment] = useState(null);
     const [previewFileUrlDetail, setPreviewFileUrlDetail] = useState('');
     const [previewModalDetailOpen, setPreviewModalDetailOpen] = useState(false);
     const [pagination, setPagination] = useState({
@@ -168,7 +170,6 @@ export const LetterComponent = () => {
 
     const getAllLetter = async (currentPage, pageSize, filters) => {
         const response = await letterService.getAllLetter(currentPage, pageSize, filters);
-
         return response;
     };
 
@@ -461,6 +462,7 @@ export const LetterComponent = () => {
                         }}
                         onPressEnter={() => handleSearchDateRange(selectedKeys, confirm)}
                         placeholder={['Từ ngày', 'Đến ngày']}
+                        allowClear={false}
                     />
                     <Button
                         type="primary"
@@ -557,6 +559,7 @@ export const LetterComponent = () => {
             key: 'diaChi',
             filteredValue: null, // Loại bỏ filter mặc định
             onFilter: null, // Loại bỏ filter mặc định
+            ...getColumnSearchProps('diaChi', 'địa chỉ')
         },
         {
             title: 'Trích yếu',
@@ -815,11 +818,115 @@ export const LetterComponent = () => {
         }));
     };
 
+    const handleExportExcel = async () => {
+        const response = await letterService.getAllLetter(0, 0, filters);
+
+        const columns = ['Số đến', 'Ngày đến', 'Số VB', 'Ngày Đơn', 'Người gửi', "Địa chỉ", "Lãnh đạo", "Nội dung trích yếu", "Chuyển 1", "Chuyển 2", "Ghi chú"];
+        const data = response.letters;
+    
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sheet1');
+
+        const fromDate = tuNgayMoment ? moment(new Date(tuNgayMoment.startOf('day'))).format("DD/MM/YYYY") : "....."
+        const toDate = denNgayMoment ? moment(new Date(denNgayMoment.startOf('day'))).format("DD/MM/YYYY") : "....."
+
+        // Add headers
+        const headerRow1 = worksheet.addRow(['THEO DÕI ĐƠN CÔNG DÂN']);
+        const headerRow2 = worksheet.addRow([`(Từ ngày ${fromDate} đến ${toDate})`]);
+        const headerRow = worksheet.addRow(columns);
+    
+        // Style header rows
+        [headerRow1, headerRow2, headerRow].forEach(row => {
+            row.eachCell(cell => {
+                cell.alignment = { horizontal: 'center' };
+                cell.font = { bold: true, size: 14, name: 'Times New Roman' };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+            });
+        });
+    
+        // Add data
+        data.forEach(item => {
+            const row = worksheet.addRow([
+                item.soDen || '',
+                item.ngayDen ? moment(item.ngayDen).format("DD/MM/YYYY") : '',
+                item.soVanBan || '',
+                item.ngayDon ? moment(item.ngayDon).format("DD/MM/YYYY") : '',
+                item.nguoiGui || '',
+                item.diaChi || '',
+                item.lanhDao || '',
+                item.trichYeu || '',
+                item.chuyen1 || '',
+                item.chuyen2 || '',
+                item.ghiChu || ''
+            ]);
+            row.eachCell(cell => {
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                cell.font = { size: 14, name: 'Times New Roman' };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+            });
+        });
+    
+        // Merge cells
+        worksheet.mergeCells('A1:K1');
+        worksheet.mergeCells('A2:K2');
+    
+        // Set column widths
+        worksheet.columns.forEach((column, index) => {
+            column.width = columnWidths[index].wch;
+        });
+    
+        // Generate buffer
+        workbook.xlsx.writeBuffer().then(buffer => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Đơn Công Dân.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    };
+    
+    const columnWidths = [
+        { wch: 10 }, // Độ rộng cột số đến
+        { wch: 15 }, // Độ rộng cột ngày đến
+        { wch: 10 }, // Độ rộng cột số vb
+        { wch: 15 }, // Độ rộng cột ngày đơn
+        { wch: 20 }, // Độ rộng cột người gửi
+        { wch: 30 }, // Độ rộng cột địa chỉ
+        { wch: 20 }, // Độ rộng cột nội dung trích yếu
+        { wch: 30 }, // Độ rộng cột lãnh đạo
+        { wch: 15 }, // Độ rộng cột chuyển 1
+        { wch: 15 }, // Độ rộng cột chuyển 2
+        { wch: 20 }  // Độ rộng cột ghi chú
+    ];
+
     return (
         <div>
             <WrapperHeader>Quản lý đơn thư</WrapperHeader>
-            <div style={{marginTop: "10px"}}>
-                <Button style={{height: "90px", width: "90px", borderRadius: "6px", borderStyle: "dashed"}} onClick={() => setIsModalOpen(true)}><PlusOutlined style={{fontSize: "40px", color: "#1677ff"}}/></Button>
+            <div style={{display: "flex", gap: "20px", marginTop: "10px" }}>
+                <Button style={{height: "90px", width: "90px", borderRadius: "6px", borderStyle: "dashed"}} onClick={() => setIsModalOpen(true)}>
+                    <div>Thêm</div>
+                    <PlusOutlined style={{fontSize: "40px", color: "#1677ff"}} />
+                </Button>
+                <Button style={{height: "90px", width: "90px", borderRadius: "6px", borderStyle: "dashed"}} onClick={handleExportExcel}>
+                    <div>Xuất Excel</div>
+                    <FileExcelOutlined style={{fontSize: "40px", color: "#1677ff"}}/>
+                </Button>
+                {/* <Button style={{height: "90px", width: "90px", borderRadius: "6px", borderStyle: "dashed"}} onClick={handleExportPDF}>
+                    <div>Xuất PDF</div>
+                    <FilePdfOutlined style={{fontSize: "40px", color: "#1677ff"}}/>
+                </Button> */}
             </div>
             <div style={{ marginTop: '20px' }}>
                 <TableComponent handleDeleteMultiple={handleDeleteMultipleLetters} columns={columns} data={dataTable} isLoading={isLoadingLetter || isLoadingResetFilter} resetSelection={resetSelection}
@@ -1002,7 +1109,7 @@ export const LetterComponent = () => {
                             footer={null}
                             width={800}
                         >
-                            <iframe src={previewFileUrl} width="100%" height="500px" frameBorder="0" />
+                            <iframe title='Preview PDF' src={previewFileUrl} width="100%" height="500px" frameBorder="0" />
                         </ModalComponent>
                         <Row gutter={[16, 16]}>
                             <Col span={24}>
@@ -1174,7 +1281,7 @@ export const LetterComponent = () => {
                             footer={null}
                             width={800}
                         >
-                            <iframe src={previewFileUrlDetail} width="100%" height="500px" frameBorder="0" />
+                            <iframe title='Preview PDF Detail' src={previewFileUrlDetail} width="100%" height="500px" frameBorder="0" />
                         </ModalComponent>
                         <Form.Item wrapperCol={{ offset: 20, span: 24 }}>
                             <Button type="primary" htmlType="submit">Cập nhật đơn thư</Button>

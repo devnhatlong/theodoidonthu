@@ -142,22 +142,31 @@ const getAllLetter = async (currentPage, pageSize, searchConditions) => {
     try {
         let totalRecords = 0;
         let letters;
-        // Đếm tổng số lượng bản ghi phù hợp với điều kiện tìm kiếm
-        if (searchConditions) {
-            totalRecords = await Letter.countDocuments(searchConditions);
-            // Tìm kiếm các bản ghi phù hợp với điều kiện tìm kiếm và áp dụng skip và limit
-            letters = await Letter.find(searchConditions)
-            .skip((currentPage - 1) * pageSize)
-            .limit(pageSize)
-            .exec();
-        }
-        else {
-            totalRecords = await Letter.countDocuments();
-            // Tìm kiếm các bản ghi phù hợp với điều kiện tìm kiếm và áp dụng skip và limit
-            letters = await Letter.find()
-            .skip((currentPage - 1) * pageSize)
-            .limit(pageSize)
-            .exec();
+        
+        if (currentPage === 0 && pageSize === 0) {
+            // Trường hợp lấy tất cả dữ liệu
+            if (searchConditions) {
+                totalRecords = await Letter.countDocuments(searchConditions);
+                letters = await Letter.find(searchConditions).exec();
+            } else {
+                totalRecords = await Letter.countDocuments();
+                letters = await Letter.find().exec();
+            }
+        } else {
+            // Trường hợp áp dụng phân trang
+            if (searchConditions) {
+                totalRecords = await Letter.countDocuments(searchConditions);
+                letters = await Letter.find(searchConditions)
+                    .skip((currentPage - 1) * pageSize)
+                    .limit(pageSize)
+                    .exec();
+            } else {
+                totalRecords = await Letter.countDocuments();
+                letters = await Letter.find()
+                    .skip((currentPage - 1) * pageSize)
+                    .limit(pageSize)
+                    .exec();
+            }
         }
         
         return { letters, totalRecords };

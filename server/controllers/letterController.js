@@ -35,17 +35,17 @@ const getAllLetter = asyncHandler(async (req, res) => {
 
     // Xây dựng các điều kiện tìm kiếm dựa trên các tham số được cung cấp
     const searchConditions = {};
-    if (soDen) searchConditions.soDen = soDen;
+    if (soDen) searchConditions.soDen = soDen.trim();
     if (ngayDen) searchConditions.ngayDen = moment.utc(ngayDen, 'DD/MM/YYYY').subtract(1, 'days').startOf('day').add(17, 'hours').toDate();
-    if (soVanBan) searchConditions.soVanBan = soVanBan;
+    if (soVanBan) searchConditions.soVanBan = soVanBan.trim();
     if (ngayDon) searchConditions.ngayDon = moment.utc(ngayDon, 'DD/MM/YYYY').subtract(1, 'days').startOf('day').add(17, 'hours').toDate();
-    if (nguoiGui) searchConditions.nguoiGui = nguoiGui;
-    if (diaChi) searchConditions.diaChi = diaChi;
-    if (lanhDao) searchConditions.lanhDao = lanhDao;
-    if (chuyen1) searchConditions.chuyen1 = chuyen1;
-    if (chuyen2) searchConditions.chuyen2 = chuyen2;
-    if (ghiChu) searchConditions.ghiChu = ghiChu;
-    if (trichYeu) searchConditions.trichYeu = trichYeu;
+    if (nguoiGui) searchConditions.nguoiGui = { $regex: nguoiGui.trim(), $options: 'i' }; // 'i' để không phân biệt chữ hoa chữ thường
+    if (diaChi) searchConditions.diaChi = { $regex: diaChi.trim(), $options: 'i' };
+    if (lanhDao) searchConditions.lanhDao = { $regex: lanhDao.trim(), $options: 'i' };
+    if (chuyen1) searchConditions.chuyen1 = { $regex: chuyen1.trim(), $options: 'i' };
+    if (chuyen2) searchConditions.chuyen2 = { $regex: chuyen2.trim(), $options: 'i' };
+    if (ghiChu) searchConditions.ghiChu = { $regex: ghiChu.trim(), $options: 'i' };
+    if (trichYeu) searchConditions.trichYeu = { $regex: trichYeu.trim(), $options: 'i' };
 
     // Thêm điều kiện lọc trong khoảng ngày nếu có tuNgay và denNgay
     if (tuNgay && denNgay) {
