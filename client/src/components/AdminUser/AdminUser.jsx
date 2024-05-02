@@ -492,24 +492,7 @@ export const AdminUser = () => {
             dataIndex: 'role',
             filteredValue: null, // Loại bỏ filter mặc định
             onFilter: null, // Loại bỏ filter mặc định
-            filters: [
-              {
-                text: 'Admin',
-                value: "admin",
-              },
-              {
-                text: 'User',
-                value: "user",
-              },
-            ],
-            onFilter: (value, record) => {
-                if (value === "admin") {
-                    return record.role === "admin"
-                }
-                else {
-                    return record.role === "user"
-                }
-            }
+            ...getColumnSearchProps('role', 'vai trò')
         },
         {
           title: buttonReloadTable,
