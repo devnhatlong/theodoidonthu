@@ -21,7 +21,6 @@ axiosJWT.interceptors.request.use(
 axiosJWT.interceptors.response.use(
     async (response) => response,
     async (error) => {
-        console.log("interceptors.response")
         const originalRequest = error.config;
         const refreshToken = getTokenFromCookie("refreshToken");
 
@@ -91,6 +90,75 @@ const userService = {
             return response.data;
         } 
         catch (error) {
+            console.log(error);
+        }
+    },
+    getAllUser: async (currentPage, pageSize, filters = {}) => {
+        try {
+            const response = await axiosJWT.get(`${process.env.REACT_APP_SERVER_URL}/user/get-all-user`, {
+                params: {
+                    filters,
+                    currentPage,
+                    pageSize
+                }
+            });
+
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    getDetailUser: async (id) => {
+        try {
+            const response = await axiosJWT.get(`${process.env.REACT_APP_SERVER_URL}/user/get-detail-user/${id}`);
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    register: async (data) => {
+        try {
+            const response = await axiosJWT.post(`${process.env.REACT_APP_SERVER_URL}/user/register`, data);
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    updateUserByAdmin: async (id, data) => {
+        try {
+            const response = await axiosJWT.put(`${process.env.REACT_APP_SERVER_URL}/user/${id}`, data);
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    passwordChangedByAdmin: async (id, data) => {
+        try {
+            const response = await axiosJWT.put(`${process.env.REACT_APP_SERVER_URL}/user/change-password-by-admin/${id}`, data);
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    deleteUser: async (id) => {
+        try {
+            const response = await axiosJWT.delete(`${process.env.REACT_APP_SERVER_URL}/user/delete-user/${id}`);
+            return response.data;
+        } 
+        catch (error) {
+            console.log(error);
+        }
+    },
+    deleteMultipleUsers: async (ids) => {
+        try {
+            const response = await axiosJWT.delete(`${process.env.REACT_APP_SERVER_URL}/user/delete-multiple-users`, { data: { ids } });
+            return response.data;
+        } catch (error) {
             console.log(error);
         }
     },

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import userService from '../../services/userService';
 import { getTokenFromCookie } from '../../utils/utils';
 import { clearUser } from '../../redux/userSlice';
+import { LogoutOutlined } from '@ant-design/icons'
 
 export const NavbarLoginComponent = () => {
     const user = useSelector((state) => state.user);
@@ -15,7 +16,7 @@ export const NavbarLoginComponent = () => {
 
     const content = (
         <div>
-            <WrapperContentPopup onClick={() => handleLogout()}>Đăng xuất</WrapperContentPopup>
+            <WrapperContentPopup style={{display: "flex"}} onClick={() => handleLogout()}><LogoutOutlined style={{fontSize: '20px', cursor: 'pointer', marginRight: "5px"}}/> Đăng xuất</WrapperContentPopup>
         </div>
     );
 

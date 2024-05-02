@@ -7,9 +7,9 @@ const sendMail = require("../ultils/sendMail");
 const crypto = require("crypto");
 
 const register = asyncHandler(async(req, res) => { 
-    const { userName, password } = req.body;
-    
-    if (!userName || !password) {
+    const { userName, password, departmentCode, departmentName, role } = req.body;
+
+    if (!userName || !password || !departmentCode || !departmentName || !role) {
         return res.status(400).json({
             success: false,
             message: "Please provide all required information"
@@ -49,6 +49,27 @@ const login = asyncHandler(async(req, res) => {
     });
 });
 
+const getAllUser = asyncHandler(async (req, res) => {
+    let { userName, departmentCode, departmentName, role } = req.query.filters || {};
+    const { currentPage, pageSize } = req.query;
+
+    // Xây dựng các điều kiện tìm kiếm dựa trên các tham số được cung cấp
+    const searchConditions = {};
+    if (userName) searchConditions.userName = { $regex: userName.trim(), $options: 'i' };
+    if (departmentCode) searchConditions.departmentCode = { $regex: departmentCode.trim(), $options: 'i' };
+    if (departmentName) searchConditions.departmentName = { $regex: departmentName.trim(), $options: 'i' };
+    if (role) searchConditions.role = { $regex: role.trim(), $options: 'i' };
+
+    const response = await UserService.getAllUser(currentPage, pageSize, searchConditions);
+
+    // Trả về danh sách các đơn thư phù hợp với yêu cầu tìm kiếm
+    return res.status(200).json({
+        success: response ? true : false,
+        users: response ? response.users : "Không có user nào được tìm thấy",
+        totalRecord: response ? response.totalRecords : 0
+    });
+});
+
 const getUser = asyncHandler(async(req, res) => { 
     const { _id } = req.user;
     
@@ -56,6 +77,16 @@ const getUser = asyncHandler(async(req, res) => {
     return res.status(200).json({
         success: response ? true : false,
         result: response ? response : "User not found"
+    });
+});
+
+const getDetailUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const response = await UserService.getDetailUser(id);
+    return res.status(200).json({
+        success: response ? true : false,
+        user: response ? response : "Không tìm thấy người dùng"
     });
 });
 
@@ -174,15 +205,15 @@ const getUsers = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => { 
-    const { _id } = req.query;
+    const { id } = req.params;
 
-    if (!_id) throw new Error("Missing id");
+    if (!id) throw new Error("Missing id");
 
-    const response = await UserService.deleteUser(_id);
+    const response = await UserService.deleteUser(id);
 
     return res.status(200).json({
         success: response ? true : false,
-        deletedUser: response ? `User with email ${response.email} deleted` : `No user delete`
+        deletedUser: response ? response : `No user delete`
     });
 });
 
@@ -212,6 +243,31 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
     });
 });
 
+const changePasswordByAdmin = asyncHandler(async (req, res) => { 
+    const { id } = req.params;
+
+    if (Object.keys(req.params).length === 0) throw new Error("Missing id");
+
+    const response = await UserService.changePasswordByAdmin(id, req.body);
+
+    return res.status(200).json({
+        success: response ? true : false
+    });
+});
+
+const deleteMultipleUsers = asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+
+    if (!ids) throw new Error("Thiếu id");
+
+    const response = await UserService.deleteMultipleUsers(ids);
+
+    return res.status(200).json({
+        success: response ? true : false,
+        deletedLetter: response ? response : "Không có người dùng nào được xóa"
+    });
+});
+
 module.exports = {
     register,
     login,
@@ -221,7 +277,11 @@ module.exports = {
     forgotPassword,
     resetPassword,
     getUsers,
+    getDetailUser,
     deleteUser,
     updateUser,
-    updateUserByAdmin
+    updateUserByAdmin,
+    getAllUser,
+    deleteMultipleUsers,
+    changePasswordByAdmin
 }

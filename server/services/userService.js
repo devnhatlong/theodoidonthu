@@ -29,17 +29,70 @@ const login = async (user) => {
 
         // save refreshtoken into db
         await User.findByIdAndUpdate(response._id, { refreshToken: newRefreshToken }, { new: true });
+        
+        // Thêm role vào userData
+        userData.role = role;
 
-        return { userData,  accessToken, newRefreshToken };
+        return { userData, accessToken, newRefreshToken };
     }
     else {
         throw new Error("Invalid credentials!");
     }
 };
 
+const getAllUser = async (currentPage, pageSize, searchConditions) => {
+    try {
+        let totalRecords = 0;
+        let users;
+        
+        if (currentPage === 0 && pageSize === 0) {
+            // Trường hợp lấy tất cả dữ liệu
+            if (searchConditions) {
+                totalRecords = await User.countDocuments({ ...searchConditions });
+                users = await User.find({ ...searchConditions }).select("-password -refreshToken").exec();
+            } else {
+                totalRecords = await User.countDocuments();
+                users = await User.find().select("-password -refreshToken").exec();
+            }
+        } else {
+            // Trường hợp áp dụng phân trang
+            if (searchConditions) {
+                totalRecords = await User.countDocuments({ ...searchConditions });
+                users = await User.find({ ...searchConditions })
+                    .select("-password -refreshToken")
+                    .skip((currentPage - 1) * pageSize)
+                    .limit(pageSize)
+                    .exec();
+            } else {
+                totalRecords = await User.countDocuments();
+                users = await User.find()
+                    .select("-password -refreshToken")
+                    .skip((currentPage - 1) * pageSize)
+                    .limit(pageSize)
+                    .exec();
+            }
+        }
+        
+        return { users, totalRecords };
+    } catch (error) {
+        console.error("Lỗi khi tìm user:", error);
+        return null;
+    }
+};
+
 const getUser = async (userId) => {
-    const user = await User.findById(userId).select("-password -refreshToken -role");
+    const user = await User.findById(userId).select("-password -refreshToken");
     return user;
+};
+
+const getDetailUser = async (id) => {
+    try {
+        const user = await User.findById({ _id: id }).select("-password -refreshToken");
+        return user;
+    } catch (error) {
+        console.error("Lỗi khi lấy user:", error);
+        return null;
+    }
 };
 
 const deleteUser = async (userId) => {
@@ -57,11 +110,49 @@ const updateUserByAdmin = async (userId, dataUpdate) => {
     return user;
 };
 
+const changePasswordByAdmin = async (userId, newPassword) => {
+    try {
+        // Lấy người dùng từ MongoDB
+        let user = await User.findById(userId);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        user.password = newPassword.password;
+        // Lưu lại thời điểm mật khẩu được thay đổi
+        user.passwordChangedAt = Date.now();
+
+        // Lưu lại người dùng đã được cập nhật
+        user = await user.save();
+
+        // Trả về người dùng đã được cập nhật mà không chứa các trường nhạy cảm
+        return user;
+    } catch (error) {
+        console.error("Error updating user password:", error);
+        throw error;
+    }
+};
+
+const deleteMultipleUsers = async (ids) => {
+    try {
+        const deletedLetter = await User.deleteMany({ _id: { $in: ids }});
+        return deletedLetter;
+    } catch (error) {
+        console.error("Lỗi khi xóa người dùng:", error);
+        return null;
+    }
+};
+
 module.exports = {
     register,
     login,
     getUser,
+    getAllUser,
+    getDetailUser,
     deleteUser,
     updateUser,
-    updateUserByAdmin
+    updateUserByAdmin,
+    deleteMultipleUsers,
+    changePasswordByAdmin
 };

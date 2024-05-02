@@ -5,10 +5,13 @@ import { UserOutlined, MailOutlined } from '@ant-design/icons';
 import { getItem } from "../../utils/utils";
 import { LetterComponent } from "../../components/LetterComponent/LetterComponent";
 import { Menu } from 'antd';
+import { AdminUser } from "../../components/AdminUser/AdminUser";
+import { useSelector } from 'react-redux';
 
 export const Dashboard = () => {
+    const user = useSelector((state) => state.user);
     const items  = [
-        // getItem('Người dùng', 'user', <UserOutlined />),
+        user?.role === "admin" && getItem('Người dùng', 'user', <UserOutlined />),
     
         getItem('Đơn thư', 'letter', <MailOutlined />),
     ];
@@ -18,10 +21,9 @@ export const Dashboard = () => {
     const renderPage = (key) => {
         switch (key) {
             case 'user':
-                // return (
-                //   <AdminUser></AdminUser>
-                // )
-                break;
+                return (
+                    <AdminUser></AdminUser>
+                )
             
             case 'letter':
                 return (

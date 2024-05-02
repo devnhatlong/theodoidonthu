@@ -11,7 +11,7 @@ import { useMutationHooks } from '../../hooks/useMutationHook';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, 
-        UploadOutlined, EyeOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons'
+        UploadOutlined, EyeOutlined, FileExcelOutlined } from '@ant-design/icons'
 import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';

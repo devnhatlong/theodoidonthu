@@ -5,6 +5,7 @@ import backgroundImage from "../../assets/images/bg_login.jpg";
 import userService from '../../services/userService';
 import { setUser } from '../../redux/userSlice'; // Import action
 import Loading from '../../components/LoadingComponent/Loading';
+import * as message from '../../components/Message/Message';
 
 export const Login = () => {
     const user = useSelector((state) => state.user);
@@ -23,7 +24,7 @@ export const Login = () => {
             
             if (response.success) {
                 // Lưu thông tin người dùng vào Redux store
-                dispatch(setUser(response.message.userData));
+                await dispatch(setUser(response.message.userData));
                 // Lưu accessToken vào cookie
                 document.cookie = `accessToken=${response.accessToken}; path=/`;
                 document.cookie = `refreshToken=${response.newRefreshToken}; path=/`;
@@ -31,7 +32,7 @@ export const Login = () => {
                 // Chuyển hướng đến /dashboard
                 // navigate('/');
             } else {
-                console.error(response.message);
+                message.error("Sai tài khoản hoặc mật khẩu");
             }
         } catch (error) {
             console.error('Error:', error);
@@ -41,6 +42,7 @@ export const Login = () => {
     useEffect(() => {
         // Kiểm tra nếu người dùng đã đăng nhập thì chuyển hướng đến trang '/'
         if (user._id) {
+            message.success("Đăng nhập thành công");
             navigate('/');
         }
     }, [user, navigate]);
