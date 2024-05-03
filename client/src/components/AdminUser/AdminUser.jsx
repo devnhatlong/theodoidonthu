@@ -480,14 +480,6 @@ export const AdminUser = () => {
             ...getColumnSearchProps('departmentName', 'tên phòng')
         },
         {
-            title: 'Lãnh đạo',
-            dataIndex: 'lanhDao',
-            key: 'lanhDao',
-            filteredValue: null, // Loại bỏ filter mặc định
-            onFilter: null, // Loại bỏ filter mặc định
-            ...getColumnSearchProps('lanhDao', 'lãnh đạo')
-        },
-        {
             title: 'Vai trò',
             dataIndex: 'role',
             filteredValue: null, // Loại bỏ filter mặc định
