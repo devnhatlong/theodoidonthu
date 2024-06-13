@@ -21,14 +21,14 @@ export const NavbarLoginComponent = () => {
     );
 
     const handleLogout = async () => {
-        let refreshToken = getTokenFromCookie("refreshToken");
+        let refreshToken = getTokenFromCookie("refreshToken_QLDT");
 
         if (refreshToken) {
             await userService.logout(refreshToken);
 
             // Clear tokens from cookie
-            document.cookie = "accessToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "refreshToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "accessToken_QLDT=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "refreshToken_QLDT=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             // clear redux
             dispatch(clearUser());
         }

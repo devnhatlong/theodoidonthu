@@ -6,7 +6,7 @@ export const axiosJWT = axios.create();
 // Add a request interceptor to add the JWT token to the authorization header
 axiosJWT.interceptors.request.use(
     (config) => {
-        const accessToken = getTokenFromCookie("accessToken");
+        const accessToken = getTokenFromCookie("accessToken_QLDT");
 
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
@@ -22,12 +22,12 @@ axiosJWT.interceptors.response.use(
     async (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        const refreshToken = getTokenFromCookie("refreshToken");
+        const refreshToken = getTokenFromCookie("refreshToken_QLDT");
 
         if (error.response.status === 401 && refreshToken) {
             try {
                 const { newAccessToken } = await userService.getRefreshToken(refreshToken);
-                document.cookie = `accessToken=${newAccessToken}; path=/`;
+                document.cookie = `accessToken_QLDT=${newAccessToken}; path=/`;
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
                 return axiosJWT(originalRequest);

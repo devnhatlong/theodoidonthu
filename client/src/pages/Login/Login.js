@@ -26,8 +26,8 @@ export const Login = () => {
                 // Lưu thông tin người dùng vào Redux store
                 await dispatch(setUser(response.message.userData));
                 // Lưu accessToken vào cookie
-                document.cookie = `accessToken=${response.accessToken}; path=/`;
-                document.cookie = `refreshToken=${response.newRefreshToken}; path=/`;
+                document.cookie = `accessToken_QLDT=${response.accessToken}; path=/`;
+                document.cookie = `refreshToken_QLDT=${response.newRefreshToken}; path=/`;
                 // localStorage.setItem("")
                 // Chuyển hướng đến /dashboard
                 // navigate('/');

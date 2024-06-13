@@ -12,7 +12,7 @@ export const getTokenFromCookie = (cookieName) => {
 };
 
 export const handleDecoded = () => {
-    let accessToken = getTokenFromCookie("accessToken");
+    let accessToken = getTokenFromCookie("accessToken_QLDT");
     let decoded = {};
     
     if (accessToken) {
