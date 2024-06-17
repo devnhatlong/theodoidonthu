@@ -48,7 +48,7 @@ export const Dashboard = () => {
                     items={items}
                     onClick={handleOnClick}
                 />
-                <div style={{padding: '15px', flex: '1'}}>
+                <div style={{padding: '15px', flex: '1', overflowY: "scroll"}}>
                     {renderPage(keySelected)}
                 </div>
             </div>
