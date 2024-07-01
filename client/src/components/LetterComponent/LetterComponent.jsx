@@ -737,6 +737,10 @@ export const LetterComponent = () => {
         const newUploadedFiles = [...uploadedFiles];
         newUploadedFiles.splice(index, 1);
         setUploadedFiles(newUploadedFiles);
+        setStateLetter(prevState => ({
+            ...prevState,
+            uploadedFiles: newUploadedFiles
+        }));
     };
 
     const props = {
