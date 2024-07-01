@@ -11,12 +11,11 @@ import { useMutationHooks } from '../../hooks/useMutationHook';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ReloadOutlined, 
-        UploadOutlined, EyeOutlined, FileExcelOutlined } from '@ant-design/icons'
+        UploadOutlined, EyeOutlined, FileExcelOutlined, DownloadOutlined } from '@ant-design/icons'
 import Moment from 'react-moment';
 import viVN from 'antd/es/date-picker/locale/vi_VN';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import moment from 'moment';
-import { convertFileDataToFiles } from '../../utils/utils';
 import * as ExcelJS from 'exceljs';
 
 export const LetterComponent = () => {
@@ -177,8 +176,6 @@ export const LetterComponent = () => {
         const response = await letterService.getDetailLetter(rowSelected);
 
         if (response?.letter) {
-            const files = convertFileDataToFiles(response?.letter?.files);
-
             setStateLetterDetail({
                 soDen: response?.letter?.soDen,
                 ngayDen: response?.letter?.ngayDen,
@@ -191,7 +188,7 @@ export const LetterComponent = () => {
                 chuyen2: response?.letter?.chuyen2,
                 ghiChu: response?.letter?.ghiChu,
                 trichYeu: response?.letter?.trichYeu,
-                uploadedFiles: files
+                uploadedFiles: response?.letter?.files
             })
         }
         setIsLoadingUpdate(false);
@@ -300,7 +297,7 @@ export const LetterComponent = () => {
     const onUpdateLetter = async () => {
         // Lấy dữ liệu từ stateLetterDetail và đổi tên key uploadedFiles thành files
         const { uploadedFiles, ...letterData } = stateLetterDetail;
-        const updatedLetterData = { ...letterData, files: uploadedFiles };
+        const updatedLetterData = { ...letterData };
     
         mutationUpdate.mutate(
             {
@@ -754,16 +751,10 @@ export const LetterComponent = () => {
         showUploadList: false,
     };
 
-    const handleFileChange = (info) => {
-        handleUploadFile(info.file);
-    };
-
-    // Xử lý sự kiện khi người dùng tải lên tập tin
-    const handleUploadFile = (file) => {
-        const updatedFiles = [...stateLetter.uploadedFiles, file];
-        setStateLetter(prevState => ({
+    const handleFileChange = () => {
+        setStateLetter((prevState) => ({
             ...prevState,
-            uploadedFiles: updatedFiles
+            uploadedFiles: uploadedFiles
         }));
     };
     
@@ -794,28 +785,6 @@ export const LetterComponent = () => {
         // Đặt URL trong state về trống để đóng modal
         setPreviewFileUrlDetail('');
         setPreviewModalDetailOpen(false);
-    };
-
-    const handleFileDetailChange = (info) => {
-        handleUploadDetailFile(info.file);
-    };
-
-    // Xử lý sự kiện khi người dùng tải lên tập tin
-    const handleUploadDetailFile = (file) => {
-        const updatedFiles = [...stateLetterDetail.uploadedFiles, file];
-        setStateLetterDetail(prevState => ({
-            ...prevState,
-            uploadedFiles: updatedFiles
-        }));
-    };
-    
-    const handleRemoveFileDetail = (index) => {
-        const newUploadedFiles = [...stateLetterDetail.uploadedFiles];
-        newUploadedFiles.splice(index, 1);
-        setStateLetterDetail(prevState => ({
-            ...prevState,
-            uploadedFiles: newUploadedFiles
-        }));
     };
 
     const handleExportExcel = async () => {
@@ -910,6 +879,19 @@ export const LetterComponent = () => {
         { wch: 15 }, // Độ rộng cột chuyển 2
         { wch: 20 }  // Độ rộng cột ghi chú
     ];
+
+    const handleDownload = async (file) => {
+        const response = await letterService.getFile(file._id);
+
+        const url = window.URL.createObjectURL(new Blob([response]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${file.name}`);
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
 
     return (
         <div>
@@ -1260,14 +1242,13 @@ export const LetterComponent = () => {
                                     labelCol={{ span: 4 }}
                                 >
                                     <>
-                                        <Upload onChange={handleFileDetailChange} fileList={stateLetterDetail.uploadedFiles} {...props}>
-                                            <Button icon={<UploadOutlined />}>Upload pdf file</Button>
-                                        </Upload>
                                         {stateLetterDetail.uploadedFiles.map((file, index) => (
                                             <div key={index} style={{display: "flex", alignItems: "center"}}>
                                                 {file.name}
-                                                <EyeOutlined style={{ fontSize: '20px', marginLeft: "10px", color: "#1677ff" }} onClick={() => handlePreviewFileDetail(file)}/>
-                                                <DeleteOutlined style={{ fontSize: '18px', marginLeft: "10px", color: "red" }} onClick={() => handleRemoveFileDetail(index)} />
+                                                <DownloadOutlined
+                                                    style={{ fontSize: '18px', marginLeft: '10px', color: 'green' }} 
+                                                    onClick={() => handleDownload(file)}
+                                                />
                                             </div>
                                         ))}
                                     </>

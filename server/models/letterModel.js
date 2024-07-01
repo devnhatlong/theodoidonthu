@@ -47,7 +47,24 @@ var letterSchema = new mongoose.Schema({
     trichYeu:{
         type:String
     },
-    files: [FileSchema.schema]
+    files: [{
+        _id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'File'
+        },
+        name: {
+            type:String
+        },
+        size: {
+            type:Number
+        },
+        type: {
+            type:String
+        },
+        path: {
+            type:String
+        },
+    }]
 }, {
     timestamps: true
 });

@@ -3,6 +3,11 @@ const LetterService = require("../services/letterService");
 const moment = require('moment');
 require('moment-timezone');
 
+const { MongoClient, GridFSBucket } = require('mongodb');
+
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+
 const createLetter = asyncHandler(async (req, res) => {
     const { soDen, ngayDen, ngayDon, nguoiGui, diaChi, lanhDao } = req.body;
     const { _id } = req.user;
@@ -19,6 +24,27 @@ const createLetter = asyncHandler(async (req, res) => {
         success: response.success,
         message: response.success ? "Tạo đơn thư thành công" : "Số đến đã tồn tại"
     });
+});
+
+const getFile = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const file = await LetterService.getFile(id);
+    if (!file) {
+        return res.status(404).json({ success: false, message: "File not found" });
+    }
+    
+    const db = client.db('theodoidonthu');
+    const bucket = new GridFSBucket(db, { bucketName: 'files' });
+
+    const downloadStream = bucket.openDownloadStreamByName(file.name);
+
+    // Set headers
+    res.set('Content-Type', file.type);
+    res.set('Content-Disposition', `inline; filename="${file.name}"`);
+
+    // Pipe the download stream to response
+    downloadStream.pipe(res);
 });
 
 const getLetter = asyncHandler(async (req, res) => {
@@ -75,7 +101,7 @@ const updateLetter = asyncHandler(async (req, res) => {
 
     if (!id) throw new Error("Thiếu id");
 
-    const response = await LetterService.updateLetter(id, req.body, req.files, _id);
+    const response = await LetterService.updateLetter(id, req.body, _id);
 
     return res.status(200).json({
         success: response ? true : false,
@@ -113,6 +139,7 @@ const deleteMultipleLetters = asyncHandler(async (req, res) => {
 
 module.exports = {
     createLetter,
+    getFile,
     getLetter,
     getAllLetter,
     updateLetter,

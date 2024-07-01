@@ -89,6 +89,16 @@ const letterService = {
             console.log(error);
         }
     },
+    getFile: async (id) => {
+        try {
+            const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-file/${id}`, {
+                responseType: 'arraybuffer'
+            });
+            return response.data;
+        } catch (error) {
+            console.log(error);
+        }
+    },
     getAllLetter: async (currentPage, pageSize, filters = {}) => {
         try {
             const response = await axiosJWTLetter.get(`${process.env.REACT_APP_SERVER_URL}/letter/get-all-letter`, {
@@ -115,24 +125,7 @@ const letterService = {
     },
     updateLetter: async (id, data) => {
         try {
-            const formData = new FormData();
-            // Thêm các trường dữ liệu khác vào FormData
-            Object.keys(data).forEach(key => {
-                if (key !== 'files') {
-                    formData.append(key, data[key]);
-                }
-            });
-
-            // Thêm các file vào FormData
-            data.files.forEach(file => {
-                formData.append('files', file);
-            });
-
-            const response = await axiosJWTLetter.put(`${process.env.REACT_APP_SERVER_URL}/letter/update-letter/${id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const response = await axiosJWTLetter.put(`${process.env.REACT_APP_SERVER_URL}/letter/update-letter/${id}`, data);
             return response.data;
         } catch (error) {
             console.log(error);
