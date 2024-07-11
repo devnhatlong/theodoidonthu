@@ -5,7 +5,7 @@ require('moment-timezone');
 
 const { MongoClient, GridFSBucket } = require('mongodb');
 
-const uri = process.env.MONGODB_URI;
+const uri = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@localhost:27017/theodoidonthu?authSource=admin`
 const client = new MongoClient(uri);
 
 const createLetter = asyncHandler(async (req, res) => {

@@ -3,7 +3,8 @@ const File = require('../models/fileModel'); // Import mô hình tập tin
 const fs = require('fs');
 const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 
-const uri = process.env.MONGODB_URI;
+const uri = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@localhost:27017/theodoidonthu?authSource=admin`
+
 const client = new MongoClient(uri);
 
 const createLetter = async (letterData, fileDataList, userId) => {
